@@ -9,4 +9,34 @@
 
 ## git
 1.main 是这个仓库的主分支
-2.
+2.查看Git仓库的状态用 git status 命令
+
+## git status
+On branch main 当前的分支是main分支，现在正处于main 分支上面。
+
+No commits yet  没有任何提交记录 
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        input_text_password.html
+        lesson-1/
+        lesson-2/
+没有被跟踪的文件
+
+
+
+
+nothing added to commit but untracked files present (use "git add" to track) 当前没有任何提交，但是没有被跟踪的文件已经展示出来了
+
+## git add
+git add 加上new file 绿色 就是文件被跟踪
+
+git add 加上点就能跟踪所有文件
+
+## git reset
+ git reset 从跟踪状态切换到不被跟踪的状态
+
+## git commit -m ""
+123
+拜克
+ 
