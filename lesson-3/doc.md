@@ -1,23 +1,44 @@
-## 配置VS-code
+## 一、配置VS-code  
 Ctrl＋，打开设置，点右上角类似纸张的图标打开JSON文件或者点Ctrl+Shift+P打开命令面板输入“settings json”
-然后粘贴下面的代码
-"editor.fontFamily": "Mono Lisa",设置编辑器的字体。
-    "editor.fontSize": 13,  ##设置编辑器的字体大小。
-    "terminal.integrated.fontSize": 13,  ##设置终端的字体大小。
-    "window.zoomLevel": 1,  ##设置窗口的缩放级别。
-    "editor.wordWrap": "on",  ##控制编辑器是否自动换行。
-    "files.autoSave": "afterDelay"  ##设置文件自动保存的时机
-## 快捷键 
-Ctrl+p: 文件（快速切换文件）
-Ctrl + shift + p: 执行扩展、配置和命令等（等价于输入前缀 ">"）
-Ctrl + b: 切换左侧边栏
-Ctrl + +/-: 缩放
-Ctrl + w: 关闭文件
-Ctrl + x：行的任意位置剪切这一行（不仅仅剪切）
-Ctrl + 上下左右: 快速的移动光标
-Ctrl + shift + 上下左右：选中整行
-Ctrl + d: 相同单词的多个光标选中
-Alt + 上下左右：移动代码行
-tab: 可以进行跳转以及补全
-Ctrl + `: 调出终端
-Ctrl＋，：打开设置
+然后粘贴下面的代码  
+"editor.fontFamily": "Mono Lisa",设置编辑器的字体。  
+    "editor.fontSize": 13,  ##设置编辑器的字体大小。  
+    "terminal.integrated.fontSize": 13,  ##设置终端的字体大小。  
+    "window.zoomLevel": 1,  ##设置窗口的缩放级别。  
+    "editor.wordWrap": "on",  ##控制编辑器是否自动换行。  
+    "files.autoSave": "afterDelay"  ##设置文件自动保存的时机  
+
+## 二、快捷键   
+
+|**快捷键组合**     |**功能说明**                                   |
+|------------------|----------------------------------------------|
+|Ctrl+p:            |文件（快速切换文件）                            |
+|Ctrl + shift + p:   |执行扩展、配置和命令等（等价于输入前缀 ">"）  |
+|Ctrl + b:           |切换左侧边栏  |
+|Ctrl + +/-:         |缩放  |
+|Ctrl + w:           |关闭文件| 
+|Ctrl + x：           |行的任意位置剪切这一行（不仅仅剪切） | 
+|Ctrl + 上下左右:      | 快速的移动光标  |
+|Ctrl + shift + 上下左右：|选中整行             |
+|Ctrl + d:               |相同单词的多个光标选中 |  
+|Alt + 上下左右：         |移动代码行                |
+|tab:                    |可以进行跳转以及补全             |
+|Ctrl + `:                |调出终端             |
+|Ctrl＋，：                |打开设置              |
+|Ctrl+Shift+X:            |打开插件扩展             |
+
+## 三、表格、标题分级、代码块  
+
+ |**标题分级**  | 
+|--------------|
+|# 作为一级标题 | 
+|## 作为二级标题  |
+
+|**表格格式**|
+| 命令   | 功能说明       | 示例               |
+| ------ | -------------- | ------------------ |
+| `mkdir` | 创建文件夹     | `mkdir project`    |
+
+
+
+
