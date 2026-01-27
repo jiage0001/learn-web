@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>CYBER-AUGMENTED RESUME V1.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyberBg: "#0A0E17",
+                        cyberCard: "#161B28",
+                        neonBlue: "#00F0FF",
+                        neonPink: "#FF0080",
+                        neonYellow: "#FFE600",
+                        neonPurple: "#9D00FF",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        :root {
+            --bg-main: #0a0e17;
+            --bg-card: #161b28;
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff0080;
+            --neon-yellow: #ffe600;
+            --neon-purple: #9d00ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at 10% 0%, rgba(0, 240, 255, 0.25) 0, transparent 55%),
+                radial-gradient(circle at 90% 100%, rgba(255, 0, 128, 0.2) 0, transparent 60%),
+                linear-gradient(180deg, #050811, #05050b 60%, #050811);
+            color: #e5e9ff;
+            min-height: 100vh;
+        }
+
+        /* 9:16 竖屏优先画布 */
+        .screen-9-16 {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        @media (min-height: 640px) {
+            .screen-9-16 {
+                min-height: calc(100vh);
+            }
+        }
+
+        /* 数字雨画布 */
+        #matrixCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        .content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 玻璃拟物卡片 + 机械网格底纹 */
+        .cyber-card {
+            position: relative;
+            background: linear-gradient(135deg, rgba(22, 27, 40, 0.88), rgba(8, 10, 18, 0.96));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .cyber-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.08) 0,
+                    transparent 40%,
+                    rgba(0, 240, 255, 0.18) 60%,
+                    transparent 80%
+                ),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 24px 24px, 24px 24px;
+            mix-blend-mode: soft-light;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .cyber-card::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            padding: 1px;
+            border-radius: inherit;
+            background: linear-gradient(120deg, rgba(0, 240, 255, 0.95), rgba(157, 0, 255, 0.9), rgba(255, 0, 128, 0.95));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .cyber-card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 霓虹分割线 */
+        .neon-divider {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), var(--neon-pink), var(--neon-yellow), transparent);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+        }
+
+        /* 头像霓虹描边 */
+        .avatar-frame {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            border-radius: 999px;
+            padding: 3px;
+            background: conic-gradient(from 120deg, var(--neon-blue), var(--neon-pink), var(--neon-purple), var(--neon-blue));
+            box-shadow:
+                0 0 25px rgba(0, 240, 255, 0.7),
+                0 0 35px rgba(255, 0, 128, 0.5);
+        }
+
+        .avatar-frame img {
+            border-radius: inherit;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 故障风文字 */
+        .glitch-text {
+            position: relative;
+            text-shadow:
+                0 0 8px rgba(0, 240, 255, 0.8),
+                0 0 16px rgba(157, 0, 255, 0.8);
+            transition: transform 0.2s ease;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            clip-path: inset(0 0 50% 0);
+        }
+
+        .glitch-text::before {
+            color: var(--neon-blue);
+            transform: translateX(-1px);
+        }
+
+        .glitch-text::after {
+            color: var(--neon-pink);
+            transform: translateX(1px);
+            clip-path: inset(50% 0 0 0);
+        }
+
+        .glitch-text:hover {
+            transform: translateY(-1px);
+        }
+
+        .glitch-text:hover::before,
+        .glitch-text:hover::after {
+            opacity: 0.9;
+            animation: glitch 0.25s steps(2, end) infinite;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(-1px, 1px);
+            }
+            50% {
+                transform: translate(1px, -1px);
+            }
+            75% {
+                transform: translate(-1px, 0);
+            }
+            100% {
+                transform: translate(0, 1px);
+            }
+        }
+
+        /* 赛博按钮 */
+        .cyber-btn {
+            position: relative;
+            overflow: hidden;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 240, 255, 0.6);
+            background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.3), transparent 55%), rgba(10, 14, 23, 0.9);
+            color: #e5e9ff;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: all 0.18s ease;
+        }
+
+        .cyber-btn::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                120deg,
+                rgba(0, 240, 255, 0.85),
+                rgba(157, 0, 255, 0.9),
+                rgba(255, 0, 128, 0.85)
+            );
+            mix-blend-mode: screen;
+            opacity: 0;
+            transition: opacity 0.18s ease, transform 0.3s ease;
+            transform: translateX(-20%);
+        }
+
+        .cyber-btn:hover::before {
+            opacity: 0.9;
+            transform: translateX(0);
+        }
+
+        .cyber-btn:hover {
+            box-shadow:
+                0 0 16px rgba(0, 240, 255, 0.7),
+                0 0 24px rgba(255, 0, 128, 0.6);
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .cyber-btn:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+        }
+
+        .cyber-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cyber-btn-small {
+            padding: 0.4rem 0.9rem;
+        }
+
+        .cyber-btn-large {
+            padding: 0.7rem 1.4rem;
+        }
+
+        /* 输入框赛博风 */
+        .cyber-input {
+            background: rgba(10, 14, 23, 0.9);
+            border-radius: 0.6rem;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: #e5e9ff;
+            font-size: 0.9rem;
+            padding: 0.55rem 0.75rem;
+            transition: all 0.18s ease;
+        }
+
+        .cyber-input::placeholder {
+            color: rgba(148, 163, 184, 0.7);
+        }
+
+        .cyber-input:focus {
+            outline: none;
+            border-color: rgba(255, 230, 0, 0.9);
+            box-shadow:
+                0 0 10px rgba(0, 240, 255, 0.8),
+                0 0 20px rgba(157, 0, 255, 0.6);
+            background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.2), transparent 60%),
+                rgba(10, 14, 23, 0.95);
+        }
+
+        textarea.cyber-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        /* 超链接巨幕按钮 */
+        .link-tile {
+            min-height: 48px;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(0, 240, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.55rem;
+            padding: 0.5rem 0.7rem;
+            font-size: 0.85rem;
+            text-decoration: none;
+            color: #e5e9ff;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(10, 14, 23, 0.96), rgba(22, 27, 40, 0.96));
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+            transition: all 0.18s ease;
+        }
+
+        .link-tile::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                120deg,
+                rgba(0, 240, 255, 0.9),
+                rgba(157, 0, 255, 0.9),
+                rgba(255, 0, 128, 0.9)
+            );
+            opacity: 0;
+            mix-blend-mode: screen;
+            transition: opacity 0.18s ease;
+        }
+
+        .link-tile:hover::before {
+            opacity: 0.8;
+        }
+
+        .link-tile:hover {
+            transform: translateY(-1px) scale(1.01);
+            box-shadow:
+                0 0 18px rgba(0, 240, 255, 0.8),
+                0 0 24px rgba(255, 0, 128, 0.7);
+        }
+
+        .link-tile span,
+        .link-tile i {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 悬浮导航栏 */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            background: linear-gradient(90deg, rgba(10, 14, 23, 0.92), rgba(10, 14, 23, 0.85));
+            border-bottom: 1px solid rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 18px rgba(0, 240, 255, 0.4);
+        }
+
+        .logo-glitch {
+            font-family: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+                "Courier New", monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #e5e9ff;
+        }
+
+        /* 编辑面板抽屉 */
+        .editor-panel {
+            position: fixed;
+            inset: auto 0 0 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background: rgba(10, 14, 23, 0.98);
+            border-top: 1px solid rgba(0, 240, 255, 0.6);
+            box-shadow: 0 -12px 25px rgba(0, 0, 0, 0.9);
+            transform: translateY(100%);
+            transition: transform 0.28s ease-out;
+            z-index: 30;
+        }
+
+        .editor-panel.open {
+            transform: translateY(0);
+        }
+
+        @media (min-width: 768px) {
+            .editor-panel {
+                inset: 0 0 0 auto;
+                max-width: 360px;
+                border-top: none;
+                border-left: 1px solid rgba(0, 240, 255, 0.6);
+                transform: translateX(100%);
+            }
+
+            .editor-panel.open {
+                transform: translateX(0);
+            }
+        }
+
+        /* 底部二维码占位（简单几何码） */
+        .qr-placeholder {
+            width: 96px;
+            height: 96px;
+            background-image: linear-gradient(90deg, #0a0e17 50%, #00f0ff 50%),
+                linear-gradient(180deg, #0a0e17 50%, #ff0080 50%);
+            background-size: 16px 16px;
+            border-radius: 0.4rem;
+            box-shadow:
+                0 0 14px rgba(0, 240, 255, 0.8),
+                0 0 18px rgba(255, 0, 128, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-placeholder::after {
+            content: "";
+            position: absolute;
+            inset: 22%;
+            border-radius: 0.2rem;
+            border: 2px solid rgba(10, 14, 23, 0.92);
+            background: rgba(10, 14, 23, 0.92);
+        }
+    </style>
+</head>
+<body>
+<canvas id="matrixCanvas"></canvas>
+<div class="screen-9-16 content-layer px-3 pt-2 pb-6">
+    <!-- 悬浮导航栏 -->
+    <header class="nav-bar rounded-b-xl px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-cyberCard flex items-center justify-center border border-[rgba(0,240,255,0.6)] shadow-[0_0_10px_rgba(0,240,255,0.7)]">
+                    <i class="fa-solid fa-microchip text-[var(--neon-yellow)] text-xs"></i>
+                </div>
+                <div class="flex flex-col leading-tight">
+                    <span class="logo-glitch glitch-text" data-text="DIGITAL AUGMENTATION">DIGITAL AUGMENTATION</span>
+                    <span class="text-[0.65rem] text-slate-400 tracking-[0.18em] uppercase">个人数字义体简历 v1.0</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="editToggle" class="cyber-btn cyber-btn-small">
+                    <span><i class="fa-solid fa-pen-to-square mr-1 text-[var(--neon-yellow)]"></i>数据重构</span>
+                </button>
+                <button id="fxToggle" class="cyber-btn cyber-btn-small border-[rgba(157,0,255,0.7)]">
+                    <span><i class="fa-solid fa-wave-square mr-1 text-[var(--neon-purple)]"></i>特效</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-3 space-y-4 text-[0.9rem]">
+        <!-- 核心身份芯片 -->
+        <section class="cyber-card">
+            <div class="cyber-card-inner px-4 pt-4 pb-5 flex flex-col items-center text-center">
+                <div class="avatar-frame mb-3.5">
+                    <img id="display-avatar" src="" alt="avatar" />
+                </div>
+                <h1 id="display-name" class="glitch-text text-2xl font-semibold mb-1" data-text="赛博行者">
+                    赛博行者
+                </h1>
+                <p id="display-title" class="text-[0.9rem] text-[var(--neon-yellow)] font-semibold tracking-[0.2em] uppercase mb-2">
+                    CYBER FRONTEND ENGINEER
+                </p>
+                <p id="display-summary" class="text-slate-300 text-[0.8rem] leading-relaxed">
+                    专注前端可视化与交互体验的数字义体工程师，擅长在高压赛博都市中构建稳定可靠的人机接口。
+                </p>
+            </div>
+        </section>
+
+        <div class="neon-divider"></div>
+
+        <!-- 职业数据日志 -->
+        <section class="cyber-card">
+            <div class="cyber-card-inner p-4 space-y-3">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-[0.9rem] tracking-[0.18em] uppercase text-[var(--neon-blue)]">
+                        <i class="fa-solid fa-database mr-1.5 text-[var(--neon-pink)]"></i>职业数据日志
+                    </h2>
+                </div>
+                <div id="display-experience" class="space-y-2.5 text-[0.8rem]"></div>
+            </div>
+        </section>
+
+        <div class="neon-divider"></div>
+
+        <!-- 义体强化模块（技能） -->
+        <section class="cyber-card">
+            <div class="cyber-card-inner p-4 space-y-3">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-[0.9rem] tracking-[0.18em] uppercase text-[var(--neon-blue)]">
+                        <i class="fa-solid fa-robot mr-1.5 text-[var(--neon-yellow)]"></i>义体强化模块
+                    </h2>
+                </div>
+                <div id="display-skills" class="space-y-2"></div>
+            </div>
+        </section>
+
+        <div class="neon-divider"></div>
+
+        <!-- 学历编码档案 -->
+        <section class="cyber-card">
+            <div class="cyber-card-inner p-4 space-y-2.5">
+                <h2 class="text-[0.9rem] tracking-[0.18em] uppercase text-[var(--neon-blue)] mb-1">
+                    <i class="fa-solid fa-school mr-1.5 text-[var(--neon-purple)]"></i>学历编码档案
+                </h2>
+                <div id="display-education" class="space-y-1.5 text-[0.8rem]"></div>
+            </div>
+        </section>
+
+        <div class="neon-divider"></div>
+
+        <!-- 神经链接端口 -->
+        <section class="cyber-card">
+            <div class="cyber-card-inner p-4 space-y-3">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-[0.9rem] tracking-[0.18em] uppercase text-[var(--neon-blue)]">
+                        <i class="fa-solid fa-plug-circle-bolt mr-1.5 text-[var(--neon-blue)]"></i>神经链接端口
+                    </h2>
+                </div>
+                <div id="display-links" class="grid grid-cols-2 gap-2"></div>
+            </div>
+        </section>
+
+        <!-- 底部信息栏 -->
+        <footer class="cyber-card">
+            <div class="cyber-card-inner px-4 py-3 flex items-center justify-between gap-3">
+                <div class="flex flex-col text-[0.7rem] leading-relaxed">
+                    <span class="text-slate-300">
+                        © <span id="display-year"></span> DIGITAL SHELL RESUME
+                    </span>
+                    <span class="text-[var(--neon-blue)]">
+                        数据版本：<span id="display-version">V1.0</span>
+                    </span>
+                    <span class="text-slate-400">长按保存二维码，高清访问当前义体配置</span>
+                </div>
+                <div class="qr-placeholder shrink-0"></div>
+            </div>
+        </footer>
+    </main>
+</div>
+
+<!-- 编辑面板 -->
+<aside id="editorPanel" class="editor-panel px-3 pt-3 pb-4 overflow-y-auto max-h-[90vh]">
+    <div class="flex items-center justify-between mb-2">
+        <div class="text-[0.85rem] text-slate-200 flex items-center gap-1">
+            <i class="fa-solid fa-sliders text-[var(--neon-blue)]"></i>
+            <span>数据重构面板</span>
+        </div>
+        <button id="editorClose" class="text-slate-400 text-xs hover:text-[var(--neon-pink)]">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <p class="text-[0.7rem] text-slate-400 mb-2">
+        所有配置仅保存在本地浏览器，可随时重置为默认数据。建议在 Wi-Fi 环境下修改并预览效果。
+    </p>
+    <div class="space-y-3 text-[0.8rem]">
+        <!-- 头像 -->
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-user-astronaut text-[var(--neon-yellow)] mr-1"></i>头像上传
+            </label>
+            <input id="edit-avatar" type="file" accept="image/*" class="block w-full text-[0.7rem] text-slate-300" />
+        </div>
+
+        <!-- 基本信息 -->
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-id-card-clip text-[var(--neon-blue)] mr-1"></i>姓名 / 昵称
+            </label>
+            <input id="edit-name" class="cyber-input w-full" placeholder="输入在抖音展示的名字" />
+        </div>
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-bullseye text-[var(--neon-pink)] mr-1"></i>求职意向
+            </label>
+            <input id="edit-title" class="cyber-input w-full" placeholder="如：前端工程师 / 交互开发 / 可视化工程师" />
+        </div>
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-comment-dots text-[var(--neon-yellow)] mr-1"></i>一句话简介
+            </label>
+            <textarea id="edit-summary" class="cyber-input w-full" placeholder="一句赛博风个人简介，控制在 40 字以内"></textarea>
+        </div>
+
+        <!-- 职业数据日志（多行，每条空行分隔） -->
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-database text-[var(--neon-purple)] mr-1"></i>职业数据日志（每段一行或一段）
+            </label>
+            <textarea
+                id="edit-experience"
+                class="cyber-input w-full"
+                placeholder="示例：公司 | 岗位 | 时间\n- 负责 XX 模块开发\n- 优化 XX 指标"
+            ></textarea>
+        </div>
+
+        <!-- 技能（每行：名称|百分比） -->
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-robot text-[var(--neon-yellow)] mr-1"></i>义体强化模块（每行：技能|百分比）</label
+            >
+            <textarea
+                id="edit-skills"
+                class="cyber-input w-full"
+                placeholder="HTML/CSS|95\nJavaScript/TypeScript|90"
+            ></textarea>
+        </div>
+
+        <!-- 学历编码档案（每行一条） -->
+        <div>
+            <label class="block mb-1 text-slate-200">
+                <i class="fa-solid fa-graduation-cap text-[var(--neon-blue)] mr-1"></i>学历编码档案（每行一条）
+            </label>
+            <textarea
+                id="edit-education"
+                class="cyber-input w-full"
+                placeholder="学校 | 专业 | 学历 | 时间"
+            ></textarea>
+        </div>
+
+        <!-- 神经链接端口 -->
+        <div class="border-t border-[rgba(148,163,184,0.4)] pt-2 mt-2">
+            <div class="flex items-center justify-between mb-1">
+                <label class="text-slate-200">
+                    <i class="fa-solid fa-plug-circle-bolt text-[var(--neon-blue)] mr-1"></i>神经链接端口
+                    <span class="text-[0.7rem] text-slate-400 ml-1">（支持自定义名称 / 颜色 / 图标 / 链接）</span>
+                </label>
+                <button id="add-link" class="text-[0.7rem] text-[var(--neon-pink)] hover:underline">
+                    <i class="fa-solid fa-plus mr-0.5"></i>添加
+                </button>
+            </div>
+            <div id="edit-links" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- 按钮区 -->
+        <div class="flex gap-2 pt-2 border-t border-[rgba(148,163,184,0.4)] mt-1">
+            <button id="save-config" class="cyber-btn cyber-btn-large flex-1">
+                <span><i class="fa-solid fa-floppy-disk mr-1 text-[var(--neon-yellow)]"></i>保存配置</span>
+            </button>
+            <button id="reset-config" class="cyber-btn cyber-btn-large flex-1 border-[rgba(255,0,128,0.7)]">
+                <span><i class="fa-solid fa-rotate-left mr-1 text-[var(--neon-pink)]"></i>恢复初始</span>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<script>
+    // ------------------ 默认数据 ------------------
+    const defaultProfile = {
+        name: "赛博行者 CY-01",
+        title: "前端工程师 / 交互开发 / 可视化工程师",
+        summary:
+            "热爱人机交互与赛博审美的前端工程师，擅长高动效页面、数据可视化与移动端体验打磨，致力于让每一帧画面都有意义。",
+        avatar: "",
+        experienceText: `霓虹城科技 | 前端工程师 | 2022.06 - 至今
+- 负责核心 H5 活动与可视化大屏开发，月覆盖用户 1000w+
+- 主导组件库规范与动画规范落地，页面性能提升 30% 以上
+- 与产品/设计/后端紧密协作，保障高压周期内稳定上线
+
+深空实验室 | 前端实习生 | 2021.03 - 2022.05
+- 参与数据可视化项目开发，落地多套交互式图表组件
+- 优化移动端首屏加载体验，白屏时间缩短 40%`,
+        skillsText: `HTML / CSS / Tailwind | 95
+JavaScript / TypeScript | 92
+Vue / React | 90
+动画与交互设计 | 88
+前端工程化 / 性能优化 | 85`,
+        educationText: `赛博城市大学 | 计算机科学与技术 | 本科 | 2017 - 2021`,
+        links: [
+            {
+                label: "微信",
+                url: "weixin://",
+                color: "#00F0FF",
+                icon: "fa-brands fa-weixin",
+            },
+            {
+                label: "邮箱",
+                url: "mailto:example@cyber.com",
+                color: "#FFE600",
+                icon: "fa-solid fa-envelope",
+            },
+            {
+                label: "GitHub",
+                url: "https://github.com",
+                color: "#FF0080",
+                icon: "fa-brands fa-github",
+            },
+            {
+                label: "作品集",
+                url: "https://example.com",
+                color: "#9D00FF",
+                icon: "fa-solid fa-display",
+            },
+            {
+                label: "抖音主页",
+                url: "https://www.douyin.com",
+                color: "#00F0FF",
+                icon: "fa-brands fa-tiktok",
+            },
+        ],
+        version: "V1.0",
+    };
+
+    const STORAGE_KEY = "cyber_resume_v1";
+
+    function loadProfile() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return { ...defaultProfile };
+            const parsed = JSON.parse(raw);
+            return { ...defaultProfile, ...parsed };
+        } catch {
+            return { ...defaultProfile };
+        }
+    }
+
+    function saveProfile(profile) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+        } catch (e) {
+            console.error("保存失败", e);
+        }
+    }
+
+    // ------------------ 渲染函数 ------------------
+    function renderProfile(profile) {
+        // 头像
+        const avatarImg = document.getElementById("display-avatar");
+        if (profile.avatar) {
+            avatarImg.src = profile.avatar;
+        } else {
+            avatarImg.src =
+                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect width='160' height='160' fill='%23161b28'/%3E%3Ccircle cx='80' cy='60' r='30' fill='%2300f0ff' opacity='0.35'/%3E%3Crect x='40' y='90' width='80' height='40' rx='18' fill='%23ff0080' opacity='0.35'/%3E%3C/svg%3E";
+        }
+
+        // 基本信息
+        const nameEl = document.getElementById("display-name");
+        nameEl.textContent = profile.name;
+        nameEl.dataset.text = profile.name;
+        document.getElementById("display-title").textContent = profile.title;
+        document.getElementById("display-summary").textContent = profile.summary;
+
+        // 职业数据日志
+        const expContainer = document.getElementById("display-experience");
+        expContainer.innerHTML = "";
+        profile.experienceText
+            .split(/\n{2,}/)
+            .map((b) => b.trim())
+            .filter(Boolean)
+            .forEach((block, idx) => {
+                const lines = block.split("\n").map((l) => l.trim());
+                if (!lines.length) return;
+                const header = lines[0];
+                const rest = lines.slice(1);
+                const [company = "", role = "", time = ""] = header.split("|").map((s) => s.trim());
+                const card = document.createElement("div");
+                card.className =
+                    "border border-[rgba(148,163,184,0.4)] rounded-md px-2.5 py-2 bg-[rgba(10,14,23,0.85)]";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-0.5">
+                        <span class="text-[0.8rem] text-[var(--neon-blue)] font-semibold">${company || "未命名公司"}</span>
+                        <span class="text-[0.7rem] text-slate-400">${time}</span>
+                    </div>
+                    <div class="text-[0.7rem] text-slate-300 mb-1">${role}</div>
+                `;
+                if (rest.length) {
+                    const ul = document.createElement("ul");
+                    ul.className = "space-y-0.5";
+                    rest.forEach((line, i) => {
+                        if (!line) return;
+                        const li = document.createElement("li");
+                        li.className = "flex items-start gap-1 text-[0.7rem] text-slate-300";
+                        li.innerHTML = `<span class="text-[var(--neon-yellow)]">0${i + 1}.</span><span>${line.replace(
+                            /^-+\s*/,
+                            ""
+                        )}</span>`;
+                        ul.appendChild(li);
+                    });
+                    card.appendChild(ul);
+                }
+                expContainer.appendChild(card);
+            });
+
+        // 技能
+        const skillsContainer = document.getElementById("display-skills");
+        skillsContainer.innerHTML = "";
+        profile.skillsText
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .forEach((line) => {
+                const [name, pctRaw] = line.split("|").map((s) => s.trim());
+                const pct = Math.max(0, Math.min(100, parseInt(pctRaw || "0", 10) || 0));
+                const row = document.createElement("div");
+                row.className = "space-y-0.5";
+                row.innerHTML = `
+                    <div class="flex items-center justify-between text-[0.75rem] text-slate-200">
+                        <span>${name}</span>
+                        <span class="text-[var(--neon-yellow)] font-semibold">${pct}%</span>
+                    </div>
+                    <div class="h-1.5 rounded-full bg-[rgba(15,23,42,0.9)] overflow-hidden">
+                        <div class="h-full rounded-full"
+                             style="width:${pct}%;background:linear-gradient(90deg,var(--neon-blue),var(--neon-pink));box-shadow:0_0_8px_rgba(0,240,255,0.7);"></div>
+                    </div>
+                `;
+                skillsContainer.appendChild(row);
+            });
+
+        // 学历
+        const eduContainer = document.getElementById("display-education");
+        eduContainer.innerHTML = "";
+        profile.educationText
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .forEach((line) => {
+                const [school = "", major = "", degree = "", time = ""] = line.split("|").map((s) => s.trim());
+                const item = document.createElement("div");
+                item.className = "border border-[rgba(148,163,184,0.5)] rounded-md px-2.5 py-1.5";
+                item.innerHTML = `
+                    <div class="text-[0.8rem] text-[var(--neon-blue)] font-semibold">${school}</div>
+                    <div class="flex items-center justify-between text-[0.7rem] text-slate-300">
+                        <span>${major} · ${degree}</span>
+                        <span class="text-slate-400">${time}</span>
+                    </div>
+                `;
+                eduContainer.appendChild(item);
+            });
+
+        // 链接
+        const linksContainer = document.getElementById("display-links");
+        linksContainer.innerHTML = "";
+        (profile.links || []).forEach((link) => {
+            if (!link.url || !link.label) return;
+            const a = document.createElement("a");
+            a.href = link.url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.className = "link-tile";
+            const color = link.color || "#00F0FF";
+            a.style.borderColor = color;
+            a.style.boxShadow = `0 0 12px ${color}80`;
+            a.innerHTML = `
+                <i class="${link.icon || "fa-solid fa-link"}" style="color:${color}"></i>
+                <span class="font-semibold" style="color:${color}">${link.label}</span>
+            `;
+            linksContainer.appendChild(a);
+        });
+
+        document.getElementById("display-year").textContent = new Date().getFullYear();
+        document.getElementById("display-version").textContent = profile.version || "V1.0";
+    }
+
+    // ------------------ 编辑面板逻辑 ------------------
+    let profile = loadProfile();
+
+    function fillEditor(profile) {
+        document.getElementById("edit-name").value = profile.name || "";
+        document.getElementById("edit-title").value = profile.title || "";
+        document.getElementById("edit-summary").value = profile.summary || "";
+        document.getElementById("edit-experience").value = profile.experienceText || "";
+        document.getElementById("edit-skills").value = profile.skillsText || "";
+        document.getElementById("edit-education").value = profile.educationText || "";
+
+        const linksWrap = document.getElementById("edit-links");
+        linksWrap.innerHTML = "";
+        (profile.links || []).forEach((link, idx) => {
+            const row = document.createElement("div");
+            row.className =
+                "border border-[rgba(148,163,184,0.5)] rounded-md px-1.5 py-1.5 space-y-1 bg-[rgba(15,23,42,0.9)]";
+            row.dataset.index = idx;
+            row.innerHTML = `
+                <div class="flex gap-1 mb-1">
+                    <input class="cyber-input flex-1 text-[0.75rem]" placeholder="名称" value="${link.label || ""}" />
+                    <input class="cyber-input w-20 text-[0.75rem]" placeholder="#颜色" value="${link.color || ""}" />
+                </div>
+                <input class="cyber-input w-full text-[0.75rem] mb-1" placeholder="图标类名，如：fa-brands fa-github" value="${
+                    link.icon || ""
+                }" />
+                <div class="flex gap-1">
+                    <input class="cyber-input flex-1 text-[0.75rem]" placeholder="链接地址" value="${link.url || ""}" />
+                    <button class="text-[0.7rem] text-[var(--neon-pink)] hover:underline remove-link">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
+            linksWrap.appendChild(row);
+        });
+    }
+
+    function collectEditorData() {
+        profile.name = document.getElementById("edit-name").value.trim() || profile.name;
+        profile.title = document.getElementById("edit-title").value.trim() || profile.title;
+        profile.summary = document.getElementById("edit-summary").value.trim() || profile.summary;
+        profile.experienceText = document.getElementById("edit-experience").value.trim() || "";
+        profile.skillsText = document.getElementById("edit-skills").value.trim() || "";
+        profile.educationText = document.getElementById("edit-education").value.trim() || "";
+
+        const linksWrap = document.getElementById("edit-links");
+        const linkRows = Array.from(linksWrap.children);
+        const links = [];
+        linkRows.forEach((row) => {
+            const inputs = row.querySelectorAll("input");
+            if (inputs.length < 4) return;
+            const [labelEl, colorEl, iconEl, urlEl] = inputs;
+            const label = labelEl.value.trim();
+            const url = urlEl.value.trim();
+            if (!label || !url) return;
+            links.push({
+                label,
+                color: colorEl.value.trim() || "#00F0FF",
+                icon: iconEl.value.trim() || "fa-solid fa-link",
+                url,
+            });
+        });
+        profile.links = links;
+    }
+
+    // ------------------ 交互绑定 ------------------
+    const editorPanel = document.getElementById("editorPanel");
+    const editToggle = document.getElementById("editToggle");
+    const editorClose = document.getElementById("editorClose");
+    const addLinkBtn = document.getElementById("add-link");
+    const saveConfigBtn = document.getElementById("save-config");
+    const resetConfigBtn = document.getElementById("reset-config");
+    const avatarInput = document.getElementById("edit-avatar");
+
+    function openEditor() {
+        fillEditor(profile);
+        editorPanel.classList.add("open");
+    }
+
+    function closeEditor() {
+        editorPanel.classList.remove("open");
+    }
+
+    editToggle.addEventListener("click", openEditor);
+    editorClose.addEventListener("click", closeEditor);
+
+    addLinkBtn.addEventListener("click", () => {
+        const linksWrap = document.getElementById("edit-links");
+        const row = document.createElement("div");
+        row.className =
+            "border border-[rgba(148,163,184,0.5)] rounded-md px-1.5 py-1.5 space-y-1 bg-[rgba(15,23,42,0.9)]";
+        row.innerHTML = `
+            <div class="flex gap-1 mb-1">
+                <input class="cyber-input flex-1 text-[0.75rem]" placeholder="名称" />
+                <input class="cyber-input w-20 text-[0.75rem]" placeholder="#颜色" value="#00F0FF" />
+            </div>
+            <input class="cyber-input w-full text-[0.75rem] mb-1" placeholder="图标类名，如：fa-brands fa-github" />
+            <div class="flex gap-1">
+                <input class="cyber-input flex-1 text-[0.75rem]" placeholder="链接地址" />
+                <button class="text-[0.7rem] text-[var(--neon-pink)] hover:underline remove-link">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `;
+        linksWrap.appendChild(row);
+    });
+
+    document.getElementById("edit-links").addEventListener("click", (e) => {
+        if (e.target.closest(".remove-link")) {
+            const row = e.target.closest("div.border");
+            if (row) row.remove();
+        }
+    });
+
+    saveConfigBtn.addEventListener("click", () => {
+        collectEditorData();
+        saveProfile(profile);
+        renderProfile(profile);
+        alert("配置已保存至本地浏览器 ✅");
+    });
+
+    resetConfigBtn.addEventListener("click", () => {
+        if (!confirm("确定恢复初始数据？当前修改将会覆盖。")) return;
+        profile = { ...defaultProfile };
+        saveProfile(profile);
+        renderProfile(profile);
+        fillEditor(profile);
+    });
+
+    avatarInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+            alert("请选择图片文件");
+            return;
+        }
+        if (file.size > 3 * 1024 * 1024) {
+            alert("图片大小请控制在 3MB 以内");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            profile.avatar = ev.target.result;
+            saveProfile(profile);
+            renderProfile(profile);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ------------------ 数字雨特效 ------------------
+    let rainEnabled = true;
+    let soundEnabled = false;
+    const fxToggle = document.getElementById("fxToggle");
+
+    const canvas = document.getElementById("matrixCanvas");
+    const ctx = canvas.getContext("2d");
+    let drops = [];
+    let animationId;
+
+    function initMatrix() {
+        const w = (canvas.width = window.innerWidth);
+        const h = (canvas.height = window.innerHeight);
+        const fontSize = 16;
+        const columns = Math.floor(w / fontSize);
+        drops = new Array(columns).fill(1);
+    }
+
+    function drawMatrix() {
+        if (!rainEnabled) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.fillStyle = "rgba(10,14,23,0.18)";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#00F0FF";
+        ctx.font = "14px monospace";
+        drops.forEach((y, idx) => {
+            const text = String.fromCharCode(0x30a0 + Math.random() * 96);
+            const x = idx * 16;
+            ctx.fillText(text, x, y * 16);
+            if (y * 16 > h && Math.random() > 0.96) {
+                drops[idx] = 0;
+            }
+            drops[idx] = y + 1;
+        });
+        animationId = requestAnimationFrame(drawMatrix);
+    }
+
+    window.addEventListener("resize", () => {
+        initMatrix();
+    });
+
+    function startMatrix() {
+        canvas.style.display = "block";
+        initMatrix();
+        cancelAnimationFrame(animationId);
+        drawMatrix();
+    }
+
+    function stopMatrix() {
+        cancelAnimationFrame(animationId);
+        canvas.style.display = "none";
+    }
+
+    fxToggle.addEventListener("click", () => {
+        rainEnabled = !rainEnabled;
+        if (rainEnabled) {
+            startMatrix();
+        } else {
+            stopMatrix();
+        }
+        soundEnabled = !soundEnabled;
+        fxToggle.querySelector("span").innerHTML = `<i class="fa-solid fa-wave-square mr-1 text-[var(--neon-purple)]"></i>${
+            rainEnabled ? "特效开" : "特效关"
+        }`;
+    });
+
+    // 轻量点击电子音（使用 Web Audio API，避免加载音频文件）
+    function playClickSound() {
+        if (!soundEnabled) return;
+        try {
+            const ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctxAudio.createOscillator();
+            const gain = ctxAudio.createGain();
+            osc.type = "square";
+            osc.frequency.value = 440;
+            gain.gain.setValueAtTime(0.15, ctxAudio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctxAudio.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(ctxAudio.destination);
+            osc.start();
+            osc.stop(ctxAudio.currentTime + 0.08);
+        } catch (e) {
+            console.warn("audio error", e);
+        }
+    }
+
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("button") || e.target.closest("a")) {
+            playClickSound();
+        }
+    });
+
+    // ------------------ 初始化 ------------------
+    (function init() {
+        renderProfile(profile);
+        startMatrix();
+    })();
+</script>
+</body>
+</html>
